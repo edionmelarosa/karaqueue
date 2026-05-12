@@ -43,9 +43,7 @@ export function removeFromQueue(id: string): QueueState {
 export function playNow(id: string): QueueState {
   const item = state.queue.find((i) => i.id === id);
   if (!item) return state;
-  // Put current nowPlaying back at front of queue (if any), then play selected
   const remaining = state.queue.filter((i) => i.id !== id);
-  const requeued = state.nowPlaying ? [state.nowPlaying, ...remaining] : remaining;
-  state = { nowPlaying: item, queue: requeued };
+  state = { nowPlaying: item, queue: remaining };
   return state;
 }
