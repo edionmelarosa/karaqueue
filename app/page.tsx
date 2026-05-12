@@ -90,7 +90,7 @@ export default function Home() {
       {/* Header */}
       <header className="px-6 py-3 border-b border-gray-800 flex items-center gap-3 flex-shrink-0">
         <h1 className="text-2xl font-black tracking-tight text-cyan-400 drop-shadow-[0_0_8px_#00d4ff]">
-          VIDEOKE
+          KaraQueue
         </h1>
         <span className="text-gray-600 text-sm">•</span>
         <span className="text-gray-500 text-sm">

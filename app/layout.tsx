@@ -3,7 +3,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
-  title: "Videoke",
+  title: "KaraQueue",
   description: "YouTube karaoke queue machine",
 };
 
