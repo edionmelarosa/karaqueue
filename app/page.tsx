@@ -17,6 +17,7 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState<Song[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
 
   const fetchQueue = useCallback(async () => {
     const res = await fetch("/api/queue");
@@ -49,9 +50,18 @@ export default function Home() {
   function handleClearSearch() {
     setSearchResults([]);
     setSearchError(null);
+    setDuplicateError(null);
   }
 
   async function handleAdd(song: Song) {
+    const alreadyQueued =
+      queueState.nowPlaying?.song.videoId === song.videoId ||
+      queueState.queue.some((item) => item.song.videoId === song.videoId);
+    if (alreadyQueued) {
+      setDuplicateError(`"${song.title}" is already in the queue`);
+      return;
+    }
+    setDuplicateError(null);
     const res = await fetch("/api/queue", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -132,7 +142,7 @@ export default function Home() {
         </div>
 
         {/* Sidebar — below player on mobile, right column on desktop */}
-        <aside className="w-full md:w-80 flex-shrink-0 border-t md:border-t-0 md:border-l border-gray-800 flex flex-col p-4 gap-4 md:overflow-y-auto">
+        <aside className="w-full md:w-80 flex-shrink-0 border-t md:border-t-0 md:border-l border-gray-800 flex flex-col p-4 gap-4 md:overflow-hidden">
           {/* Search + results — always at top, no scroll needed */}
           <div className="flex flex-col gap-2">
             <p className="text-[10px] text-gray-600 uppercase tracking-widest font-semibold">
@@ -157,6 +167,12 @@ export default function Home() {
                 <p className="text-yellow-600 text-xs mt-0.5">{searchError}</p>
               </div>
             )}
+            {duplicateError && (
+              <div className="rounded-lg bg-orange-950/60 border border-orange-800/50 px-3 py-2">
+                <p className="text-orange-400 text-xs font-semibold">⚠ Already in queue</p>
+                <p className="text-orange-600 text-xs mt-0.5">{duplicateError}</p>
+              </div>
+            )}
             {hasResults && (
               <SearchResults results={searchResults} onAdd={handleAdd} />
             )}
@@ -169,7 +185,9 @@ export default function Home() {
             onPlay={handlePlaySong}
           />
           <div className="border-t border-gray-800" />
-          <QueuePanel queue={queueState.queue} onRemove={handleRemove} onPlayNow={handlePlayNow} />
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <QueuePanel queue={queueState.queue} onRemove={handleRemove} onPlayNow={handlePlayNow} />
+          </div>
         </aside>
       </main>
 
