@@ -26,7 +26,7 @@ export default function Recommendations({ nowPlaying, onAdd, onPlay }: Props) {
       videoId: nowPlaying.videoId,
     });
     fetch(`/api/recommendations?${params}`)
-      .then((r) => r.ok ? r.json() : [])
+      .then((r) => r.ok ? r.json() as Promise<Song[]> : [])
       .then((data) => { if (!cancelled) setSongs(data); })
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoading(false); });

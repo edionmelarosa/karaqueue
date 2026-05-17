@@ -22,7 +22,7 @@ export default function Home() {
 
   const fetchQueue = useCallback(async () => {
     const res = await fetch("/api/queue");
-    if (res.ok) setQueueState(await res.json());
+    if (res.ok) setQueueState(await res.json() as QueueState);
   }, []);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function Home() {
     setSearchError(null);
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-      const data = await res.json();
+      const data = await res.json() as any;
       if (res.status === 429) throw new Error(data.message ?? "quota_exceeded");
       if (!res.ok) throw new Error(data.error ?? "Search failed");
       setSearchResults(data);
@@ -60,19 +60,19 @@ export default function Home() {
       body: JSON.stringify({ song }),
     });
     if (res.ok) {
-      setQueueState(await res.json());
+      setQueueState(await res.json() as QueueState);
       handleClearSearch();
     }
   }
 
   async function handleAdvance() {
     const res = await fetch("/api/queue/advance", { method: "POST" });
-    if (res.ok) setQueueState(await res.json());
+    if (res.ok) setQueueState(await res.json() as QueueState);
   }
 
   async function handleRemove(id: string) {
     const res = await fetch(`/api/queue/${id}`, { method: "DELETE" });
-    if (res.ok) setQueueState(await res.json());
+    if (res.ok) setQueueState(await res.json() as QueueState);
   }
 
   async function handlePlayNow(id: string) {
@@ -81,7 +81,7 @@ export default function Home() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
-    if (res.ok) setQueueState(await res.json());
+    if (res.ok) setQueueState(await res.json() as QueueState);
   }
 
   async function handlePlaySong(song: Song) {
@@ -90,7 +90,7 @@ export default function Home() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ song }),
     });
-    if (res.ok) setQueueState(await res.json());
+    if (res.ok) setQueueState(await res.json() as QueueState);
   }
 
   const videoId = queueState.nowPlaying?.song.videoId ?? null;

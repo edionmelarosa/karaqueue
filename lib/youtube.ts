@@ -17,11 +17,11 @@ export async function searchYouTube(query: string, maxResults = 10): Promise<Son
   const searchRes = await fetch(`${BASE_URL}/search?${searchParams}`);
 
   if (!searchRes.ok) {
-    const err = await searchRes.json().catch(() => ({}));
+    const err = await searchRes.json().catch(() => ({})) as any;
     throw new Error(err?.error?.message ?? `YouTube API error ${searchRes.status}`);
   }
 
-  const searchData = await searchRes.json();
+  const searchData = await searchRes.json() as any;
   const items: any[] = searchData.items ?? [];
 
   return items.map((item: any) => ({
