@@ -5,9 +5,35 @@ import { QueueItem } from "@/types";
 interface Props {
   nowPlaying: QueueItem | null;
   onSkip: () => void;
+  compact?: boolean;
 }
 
-export default function NowPlaying({ nowPlaying, onSkip }: Props) {
+export default function NowPlaying({ nowPlaying, onSkip, compact }: Props) {
+  if (compact) {
+    if (!nowPlaying) return null;
+    return (
+      <div className="flex items-center gap-2 ml-auto min-w-0 flex-shrink">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-pink-400 flex-shrink-0 hidden sm:block">
+          Now Playing
+        </span>
+        <img
+          src={nowPlaying.song.thumbnailUrl}
+          alt={nowPlaying.song.title}
+          className="w-10 h-7 object-cover rounded ring-1 ring-pink-500 flex-shrink-0"
+        />
+        <span className="text-white text-xs font-medium truncate max-w-[160px] md:max-w-[260px] animate-pulse">
+          {nowPlaying.song.title}
+        </span>
+        <button
+          onClick={onSkip}
+          className="flex-shrink-0 text-xs px-2 py-0.5 rounded bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors border border-gray-700"
+        >
+          Skip ›
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <h2 className="text-xs font-bold uppercase tracking-widest text-pink-400">
