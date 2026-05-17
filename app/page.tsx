@@ -97,16 +97,17 @@ export default function Home() {
   return (
     <div className="min-h-screen md:h-screen bg-[#0a0a0f] text-white flex flex-col overflow-x-hidden">
       {/* Header */}
-      <header className="px-4 py-3 border-b border-gray-800 flex items-center gap-2 flex-shrink-0 min-w-0">
+      <header className="px-4 py-3 border-b border-gray-800 flex items-center gap-2 flex-shrink-0 min-w-0 overflow-hidden">
         <h1 className="text-xl md:text-2xl font-black tracking-tight text-cyan-400 drop-shadow-[0_0_8px_#00d4ff] flex-shrink-0">
           KaraQueue
         </h1>
         <span className="text-gray-600 text-sm flex-shrink-0">•</span>
-        <span className="text-gray-500 text-xs md:text-sm truncate min-w-0">
+        <span className="text-gray-500 text-xs md:text-sm flex-shrink-0">
           {queueState.queue.length > 0
             ? `${queueState.queue.length} song${queueState.queue.length !== 1 ? "s" : ""} in queue`
             : "Queue empty"}
         </span>
+        <NowPlaying compact nowPlaying={queueState.nowPlaying} onSkip={handleAdvance} />
       </header>
 
       {/* Main content */}
@@ -162,7 +163,6 @@ export default function Home() {
           </div>
 
           <div className="border-t border-gray-800" />
-          <NowPlaying nowPlaying={queueState.nowPlaying} onSkip={handleAdvance} />
           <Recommendations
             nowPlaying={queueState.nowPlaying?.song ?? null}
             onAdd={handleAdd}
