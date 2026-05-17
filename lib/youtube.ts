@@ -12,6 +12,7 @@ async function scrapeYouTube(query: string, maxResults: number): Promise<Song[]>
       "Accept-Language": "en-US,en;q=0.9",
       "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     },
+    next: { revalidate: 3600 },
   });
 
   if (!res.ok) throw new Error(`YouTube scrape failed: ${res.status}`);
