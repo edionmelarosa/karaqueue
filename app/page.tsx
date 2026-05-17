@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import YouTubePlayer from "@/components/YouTubePlayer";
 import NowPlaying from "@/components/NowPlaying";
@@ -13,6 +13,16 @@ import AdUnit from "@/components/AdUnit";
 import { QueueState, Song } from "@/types";
 
 const EMPTY_STATE: QueueState = { nowPlaying: null, queue: [] };
+const DEVICE_ID_KEY = "kq_device_id";
+
+function getOrCreateDeviceId(): string {
+  let id = localStorage.getItem(DEVICE_ID_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(DEVICE_ID_KEY, id);
+  }
+  return id;
+}
 
 export default function Home() {
   const { data: session } = useSession();
@@ -20,17 +30,32 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState<Song[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [deviceId, setDeviceId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setDeviceId(getOrCreateDeviceId());
+  }, []);
+
+  const deviceIdRef = useRef(deviceId);
+  useEffect(() => { deviceIdRef.current = deviceId; }, [deviceId]);
+
+  function queueHeaders(extra?: Record<string, string>): Record<string, string> {
+    return { "X-Device-Id": deviceIdRef.current ?? "", ...extra };
+  }
 
   const fetchQueue = useCallback(async () => {
-    const res = await fetch("/api/queue");
+    const did = deviceIdRef.current;
+    if (!did) return;
+    const res = await fetch("/api/queue", { headers: { "X-Device-Id": did } });
     if (res.ok) setQueueState(await res.json() as QueueState);
   }, []);
 
   useEffect(() => {
+    if (!deviceId) return;
     fetchQueue();
     const id = setInterval(fetchQueue, 2000);
     return () => clearInterval(id);
-  }, [fetchQueue]);
+  }, [fetchQueue, deviceId]);
 
   async function handleSearch(query: string) {
     setSearchLoading(true);
@@ -57,7 +82,7 @@ export default function Home() {
   async function handleAdd(song: Song) {
     const res = await fetch("/api/queue", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: queueHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ song }),
     });
     if (res.ok) {
@@ -67,19 +92,19 @@ export default function Home() {
   }
 
   async function handleAdvance() {
-    const res = await fetch("/api/queue/advance", { method: "POST" });
+    const res = await fetch("/api/queue/advance", { method: "POST", headers: queueHeaders() });
     if (res.ok) setQueueState(await res.json() as QueueState);
   }
 
   async function handleRemove(id: string) {
-    const res = await fetch(`/api/queue/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/queue/${id}`, { method: "DELETE", headers: queueHeaders() });
     if (res.ok) setQueueState(await res.json() as QueueState);
   }
 
   async function handlePlayNow(id: string) {
     const res = await fetch("/api/queue/play-now", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: queueHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ id }),
     });
     if (res.ok) setQueueState(await res.json() as QueueState);
@@ -88,7 +113,7 @@ export default function Home() {
   async function handlePlaySong(song: Song) {
     const res = await fetch("/api/queue/play-song", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: queueHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ song }),
     });
     if (res.ok) setQueueState(await res.json() as QueueState);
