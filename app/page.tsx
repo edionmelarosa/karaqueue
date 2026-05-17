@@ -9,6 +9,7 @@ import SearchBar from "@/components/SearchBar";
 import SearchResults from "@/components/SearchResults";
 import Recommendations from "@/components/Recommendations";
 import AuthButton from "@/components/AuthButton";
+import AdUnit from "@/components/AdUnit";
 import { QueueState, Song } from "@/types";
 
 const EMPTY_STATE: QueueState = { nowPlaying: null, queue: [] };
@@ -97,24 +98,19 @@ export default function Home() {
   const hasResults = searchResults.length > 0;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col">
+    <div className="min-h-screen md:h-screen bg-[#0a0a0f] text-white flex flex-col overflow-x-hidden">
       {/* Header */}
-      <header className="px-6 py-3 border-b border-gray-800 flex items-center gap-3 flex-shrink-0">
-        <h1 className="text-2xl font-black tracking-tight text-cyan-400 drop-shadow-[0_0_8px_#00d4ff]">
+      <header className="px-4 py-3 border-b border-gray-800 flex items-center gap-2 flex-shrink-0 min-w-0">
+        <h1 className="text-xl md:text-2xl font-black tracking-tight text-cyan-400 drop-shadow-[0_0_8px_#00d4ff] flex-shrink-0">
           KaraQueue
         </h1>
-        <span className="text-gray-600 text-sm">•</span>
-        <span className="text-gray-500 text-sm">
+        <span className="text-gray-600 text-sm flex-shrink-0">•</span>
+        <span className="text-gray-500 text-xs md:text-sm truncate min-w-0">
           {queueState.queue.length > 0
             ? `${queueState.queue.length} song${queueState.queue.length !== 1 ? "s" : ""} in queue`
             : "Queue empty"}
         </span>
-        <div className="ml-auto flex items-center gap-3">
-          {!session && (
-            <span className="text-xs text-yellow-600 hidden sm:block">
-              Sign in with Google
-            </span>
-          )}
+        <div className="ml-auto flex items-center gap-2 flex-shrink-0">
           {session && (
             <span className="text-xs text-green-500 hidden sm:block">
               ✓ Signed in
@@ -125,10 +121,17 @@ export default function Home() {
       </header>
 
       {/* Main content */}
-      <main className="flex flex-1 overflow-hidden">
-        {/* Player — left column, always visible */}
-        <div className="flex flex-col flex-1 p-4 gap-3 min-w-0">
+      <main className="flex flex-col md:flex-row md:flex-1 md:min-h-0 md:overflow-hidden">
+        {/* Player — top on mobile, left column on desktop */}
+        <div className="flex flex-col p-4 gap-3 min-w-0 md:flex-1">
           <YouTubePlayer videoId={videoId} onEnded={handleAdvance} />
+          {process.env.NEXT_PUBLIC_ADSENSE_SLOT && (
+            <AdUnit
+              slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT}
+              format="horizontal"
+              className="w-full"
+            />
+          )}
           {queueState.nowPlaying && (
             <div className="overflow-hidden whitespace-nowrap bg-gray-900 rounded px-3 py-1.5 border border-gray-800">
               <p className="inline-block animate-[marquee_20s_linear_infinite] text-cyan-400 text-sm font-medium">
@@ -138,8 +141,8 @@ export default function Home() {
           )}
         </div>
 
-        {/* Sidebar */}
-        <aside className="w-80 flex-shrink-0 border-l border-gray-800 flex flex-col p-4 overflow-y-auto gap-4">
+        {/* Sidebar — below player on mobile, right column on desktop */}
+        <aside className="w-full md:w-80 flex-shrink-0 border-t md:border-t-0 md:border-l border-gray-800 flex flex-col p-4 gap-4 md:overflow-y-auto">
           {/* Search + results — always at top, no scroll needed */}
           <div className="flex flex-col gap-2">
             <p className="text-[10px] text-gray-600 uppercase tracking-widest font-semibold">

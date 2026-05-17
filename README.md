@@ -40,7 +40,10 @@ NEXTAUTH_SECRET=your_nextauth_secret
 GOOGLE_CLIENT_ID=your_google_oauth_client_id
 GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
 NEXTAUTH_URL=http://localhost:3000
+NEXT_PUBLIC_RECOMMENDATIONS=true
 ```
+
+Set `NEXT_PUBLIC_RECOMMENDATIONS=false` to disable the genre-based song recommendations feature.
 
 ## Tech Stack
 
