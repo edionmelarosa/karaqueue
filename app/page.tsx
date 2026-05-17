@@ -9,6 +9,7 @@ import SearchBar from "@/components/SearchBar";
 import SearchResults from "@/components/SearchResults";
 import Recommendations from "@/components/Recommendations";
 import AuthButton from "@/components/AuthButton";
+import AdUnit from "@/components/AdUnit";
 import { QueueState, Song } from "@/types";
 
 const EMPTY_STATE: QueueState = { nowPlaying: null, queue: [] };
@@ -124,6 +125,13 @@ export default function Home() {
         {/* Player — top on mobile, left column on desktop */}
         <div className="flex flex-col p-4 gap-3 min-w-0 md:flex-1">
           <YouTubePlayer videoId={videoId} onEnded={handleAdvance} />
+          {process.env.NEXT_PUBLIC_ADSENSE_SLOT && (
+            <AdUnit
+              slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT}
+              format="horizontal"
+              className="w-full"
+            />
+          )}
           {queueState.nowPlaying && (
             <div className="overflow-hidden whitespace-nowrap bg-gray-900 rounded px-3 py-1.5 border border-gray-800">
               <p className="inline-block animate-[marquee_20s_linear_infinite] text-cyan-400 text-sm font-medium">
