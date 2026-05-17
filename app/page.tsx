@@ -1,21 +1,18 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import YouTubePlayer from "@/components/YouTubePlayer";
 import NowPlaying from "@/components/NowPlaying";
 import QueuePanel from "@/components/QueuePanel";
 import SearchBar from "@/components/SearchBar";
 import SearchResults from "@/components/SearchResults";
 import Recommendations from "@/components/Recommendations";
-import AuthButton from "@/components/AuthButton";
 import AdUnit from "@/components/AdUnit";
 import { QueueState, Song } from "@/types";
 
 const EMPTY_STATE: QueueState = { nowPlaying: null, queue: [] };
 
 export default function Home() {
-  const { data: session } = useSession();
   const [queueState, setQueueState] = useState<QueueState>(EMPTY_STATE);
   const [searchResults, setSearchResults] = useState<Song[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -110,14 +107,6 @@ export default function Home() {
             ? `${queueState.queue.length} song${queueState.queue.length !== 1 ? "s" : ""} in queue`
             : "Queue empty"}
         </span>
-        <div className="ml-auto flex items-center gap-2 flex-shrink-0">
-          {session && (
-            <span className="text-xs text-green-500 hidden sm:block">
-              ✓ Signed in
-            </span>
-          )}
-          <AuthButton />
-        </div>
       </header>
 
       {/* Main content */}

@@ -62,6 +62,25 @@ async function scrapeYouTube(query: string, maxResults: number): Promise<Song[]>
   return videos;
 }
 
+async function filterEmbeddable(songs: Song[]): Promise<Song[]> {
+  if (!API_KEY || songs.length === 0) return songs;
+
+  const videoIds = songs.map((s) => s.videoId).join(",");
+  const statusParams = new URLSearchParams({ part: "status", id: videoIds, key: API_KEY });
+
+  const statusRes = await fetch(`${BASE_URL}/videos?${statusParams}`).catch(() => null);
+  if (!statusRes?.ok) return songs;
+
+  const statusData = await statusRes.json() as any;
+  const embeddableIds = new Set<string>(
+    (statusData.items ?? [])
+      .filter((v: any) => v.status?.embeddable === true)
+      .map((v: any) => v.id as string)
+  );
+
+  return songs.filter((s) => embeddableIds.has(s.videoId));
+}
+
 async function searchYouTubeAPI(query: string, maxResults: number): Promise<Song[]> {
   if (!API_KEY) throw new Error("YOUTUBE_API_KEY is not set");
 
@@ -83,17 +102,22 @@ async function searchYouTubeAPI(query: string, maxResults: number): Promise<Song
   }
 
   const searchData = await searchRes.json() as any;
-  return (searchData.items ?? []).map((item: any) => ({
+  const songs: Song[] = (searchData.items ?? []).map((item: any) => ({
     videoId: item.id.videoId,
     title: item.snippet.title,
     channelTitle: item.snippet.channelTitle,
     thumbnailUrl: item.snippet.thumbnails?.medium?.url ?? "",
   }));
+
+  // Step 2: check embeddability — filter out videos that can't be embedded
+  return filterEmbeddable(songs);
 }
 
 export async function searchYouTube(query: string, maxResults = 10): Promise<Song[]> {
   try {
-    return await scrapeYouTube(query, maxResults);
+    const songs = await scrapeYouTube(query, maxResults);
+    // Step 2: check embeddability — filter out videos that can't be embedded
+    return await filterEmbeddable(songs);
   } catch (scrapeErr) {
     console.warn("YouTube scrape failed, falling back to API:", (scrapeErr as Error).message);
     return searchYouTubeAPI(query, maxResults);
