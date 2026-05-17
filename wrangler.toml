@@ -1,0 +1,9 @@
+name = "karaqueue"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+[[kv_namespaces]]
+binding = "QUEUE_KV"
+id = "adfca31cd4394721b47cdaf6179e17e8"
+preview_id = "371499c0035b4ac6959bcf1aa2c21e33"

@@ -14,9 +14,7 @@ export async function searchYouTube(query: string, maxResults = 10): Promise<Son
     key: API_KEY,
   });
 
-  const searchRes = await fetch(`${BASE_URL}/search?${searchParams}`, {
-    next: { revalidate: 3600 }, // cache identical queries for 1 hour
-  });
+  const searchRes = await fetch(`${BASE_URL}/search?${searchParams}`);
 
   if (!searchRes.ok) {
     const err = await searchRes.json().catch(() => ({}));

@@ -1,0 +1,7 @@
+{
+  "extends": ["next"],
+  "plugins": ["eslint-plugin-next-on-pages"],
+  "rules": {
+    "next-on-pages/no-unsupported-configs": "warn"
+  }
+}
