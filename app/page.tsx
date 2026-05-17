@@ -37,6 +37,7 @@ export default function Home() {
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
       const data = await res.json();
+      if (res.status === 429) throw new Error(data.message ?? "quota_exceeded");
       if (!res.ok) throw new Error(data.error ?? "Search failed");
       setSearchResults(data);
     } catch (e: any) {
@@ -156,7 +157,12 @@ export default function Home() {
               </p>
             )}
             {searchError && (
-              <p className="text-red-400 text-xs">{searchError}</p>
+              <div className="rounded-lg bg-yellow-950/60 border border-yellow-800/50 px-3 py-2">
+                <p className="text-yellow-400 text-xs font-semibold">
+                  {searchError.includes("temporarily unavailable") ? "⚠ Search limit reached" : "⚠ Search failed"}
+                </p>
+                <p className="text-yellow-600 text-xs mt-0.5">{searchError}</p>
+              </div>
             )}
             {hasResults && (
               <SearchResults results={searchResults} onAdd={handleAdd} />
@@ -174,6 +180,24 @@ export default function Home() {
           <QueuePanel queue={queueState.queue} onRemove={handleRemove} onPlayNow={handlePlayNow} />
         </aside>
       </main>
+
+      {/* YouTube attribution — required by YouTube API ToS */}
+      <footer className="flex items-center justify-end gap-2 px-6 py-2 border-t border-gray-800/50 flex-shrink-0">
+        <span className="text-gray-600 text-[10px]">Powered by</span>
+        <a
+          href="https://www.youtube.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-white transition-colors"
+          aria-label="YouTube"
+        >
+          <svg viewBox="0 0 90 20" className="h-3 fill-current text-red-600" aria-hidden="true">
+            <path d="M27.9727 3.12324C27.6435 1.89323 26.6768 0.926623 25.4468 0.597366C23.2197 2.24288e-07 14.285 0 14.285 0C14.285 0 5.35042 2.24288e-07 3.12323 0.597366C1.89323 0.926623 0.926623 1.89323 0.597366 3.12324C2.24288e-07 5.35042 0 10 0 10C0 10 2.24288e-07 14.6496 0.597366 16.8768C0.926623 18.1068 1.89323 19.0734 3.12323 19.4026C5.35042 20 14.285 20 14.285 20C14.285 20 23.2197 20 25.4468 19.4026C26.6768 19.0734 27.6435 18.1068 27.9727 16.8768C28.5701 14.6496 28.5701 10 28.5701 10C28.5701 10 28.5677 5.35042 27.9727 3.12324Z" />
+            <path d="M11.4253 14.2854L18.8477 10.0004L11.4253 5.71533V14.2854Z" className="fill-white" />
+          </svg>
+          <span className="font-medium">YouTube</span>
+        </a>
+      </footer>
     </div>
   );
 }

@@ -75,10 +75,22 @@ export default function Recommendations({ nowPlaying, onAdd, onPlay }: Props) {
                 </button>
               </div>
               <div className="flex flex-col flex-1 min-w-0">
-                <p className="text-gray-300 text-xs leading-tight line-clamp-2 group-hover:text-white">
+                <a
+                  href={`https://www.youtube.com/watch?v=${song.videoId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-300 text-xs leading-tight line-clamp-2 group-hover:text-white hover:underline"
+                >
                   {song.title}
-                </p>
-                <p className="text-gray-600 text-[10px] truncate mt-0.5">{song.channelTitle}</p>
+                </a>
+                <a
+                  href={`https://www.youtube.com/@${encodeURIComponent(song.channelTitle)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-600 text-[10px] truncate mt-0.5 hover:text-gray-400 hover:underline"
+                >
+                  {song.channelTitle}
+                </a>
               </div>
               <button
                 onClick={() => handleAdd(song)}

@@ -24,10 +24,24 @@ export default function SearchResults({ results, onAdd }: Props) {
             className="w-20 aspect-video object-cover rounded flex-shrink-0"
           />
           <div className="flex flex-col flex-1 min-w-0 gap-0.5">
-            <p className="text-gray-200 text-sm leading-tight line-clamp-2 group-hover:text-white">
+            <a
+              href={`https://www.youtube.com/watch?v=${song.videoId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-gray-200 text-sm leading-tight line-clamp-2 group-hover:text-white hover:underline"
+            >
               {song.title}
-            </p>
-            <p className="text-gray-500 text-xs truncate">{song.channelTitle}</p>
+            </a>
+            <a
+              href={`https://www.youtube.com/@${encodeURIComponent(song.channelTitle)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-gray-500 text-xs truncate hover:text-gray-300 hover:underline"
+            >
+              {song.channelTitle}
+            </a>
           </div>
           <span className="flex-shrink-0 px-2.5 py-1 rounded bg-pink-700 text-white text-xs font-semibold group-hover:bg-pink-600 transition-colors mr-1">
             + Add

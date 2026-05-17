@@ -15,16 +15,35 @@ export default function NowPlaying({ nowPlaying, onSkip }: Props) {
       </h2>
       {nowPlaying ? (
         <div className="flex gap-3 items-start">
-          <img
-            src={nowPlaying.song.thumbnailUrl}
-            alt={nowPlaying.song.title}
-            className="w-20 h-14 object-cover rounded flex-shrink-0 ring-2 ring-pink-500 shadow-[0_0_12px_#ff006e]"
-          />
+          <a
+            href={`https://www.youtube.com/watch?v=${nowPlaying.song.videoId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-shrink-0"
+          >
+            <img
+              src={nowPlaying.song.thumbnailUrl}
+              alt={nowPlaying.song.title}
+              className="w-20 h-14 object-cover rounded ring-2 ring-pink-500 shadow-[0_0_12px_#ff006e] hover:ring-pink-400 transition-shadow"
+            />
+          </a>
           <div className="overflow-hidden flex-1">
-            <p className="text-white font-semibold text-sm leading-tight line-clamp-2 animate-pulse">
+            <a
+              href={`https://www.youtube.com/watch?v=${nowPlaying.song.videoId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white font-semibold text-sm leading-tight line-clamp-2 animate-pulse hover:underline block"
+            >
               {nowPlaying.song.title}
-            </p>
-            <p className="text-gray-400 text-xs mt-1">{nowPlaying.song.channelTitle}</p>
+            </a>
+            <a
+              href={`https://www.youtube.com/@${encodeURIComponent(nowPlaying.song.channelTitle)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 text-xs mt-1 hover:text-gray-200 hover:underline block"
+            >
+              {nowPlaying.song.channelTitle}
+            </a>
           </div>
         </div>
       ) : (
