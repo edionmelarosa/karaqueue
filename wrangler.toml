@@ -6,6 +6,9 @@ pages_build_output_dir = ".vercel/output/static"
 [vars]
 NEXTAUTH_URL = "https://karaqueue.pages.dev"
 NEXT_PUBLIC_RECOMMENDATIONS = "false"
+NEXT_PUBLIC_GA_MEASUREMENT_ID = "G-J6D996PDVY"
+NEXT_PUBLIC_ADSENSE_CLIENT = "ca-pub-2248051619608484"
+NEXT_PUBLIC_ADSENSE_SLOT = "2831779136"
 
 [[kv_namespaces]]
 binding = "QUEUE_KV"
