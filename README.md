@@ -6,10 +6,13 @@ A YouTube-powered karaoke queue app. Search for karaoke videos, add them to a sh
 
 - **YouTube karaoke search** — find karaoke versions of songs directly from YouTube
 - **Shared queue** — everyone on the same network can add songs; the queue syncs automatically every 2 seconds
-- **Now Playing** — marquee display of the current song title and channel
+- **Now Playing** — marquee display of the current song title and channel, linking back to YouTube
 - **Queue management** — remove songs or jump any queued song to play immediately
+- **Genre-based recommendations** — suggests similar songs while one is playing
 - **Google Sign-In** — authenticate with your Google account to add songs
 - **Auto-advance** — automatically plays the next song when one ends
+- **Search result caching** — repeated searches are served from cache, reducing YouTube API quota usage
+- **YouTube ToS compliant** — video titles, channel names, and thumbnails link to YouTube; "Powered by YouTube" attribution displayed
 
 ## How to Use
 
