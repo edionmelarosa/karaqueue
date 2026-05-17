@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import YouTubePlayer from "@/components/YouTubePlayer";
 import NowPlaying from "@/components/NowPlaying";
 import QueuePanel from "@/components/QueuePanel";
