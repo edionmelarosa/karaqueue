@@ -139,7 +139,7 @@ export default function Home() {
         </div>
 
         {/* Sidebar */}
-        <aside className="w-80 flex-shrink-0 border-l border-gray-800 flex flex-col p-4 overflow-y-auto gap-4">
+        <aside className="w-80 flex-shrink-0 border-l border-gray-800 flex flex-col p-4 gap-4 overflow-hidden">
           {/* Search + results — always at top, no scroll needed */}
           <div className="flex flex-col gap-2">
             <p className="text-[10px] text-gray-600 uppercase tracking-widest font-semibold">

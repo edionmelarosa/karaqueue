@@ -11,8 +11,8 @@ export default function SearchResults({ results, onAdd }: Props) {
   if (results.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-2 overflow-y-auto">
-      {results.map((song) => (
+    <div className="flex flex-col gap-2 overflow-y-auto max-h-[360px]">
+      {results.slice(0, 5).map((song) => (
         <button
           key={song.videoId}
           onClick={() => onAdd(song)}
