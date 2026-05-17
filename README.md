@@ -1,5 +1,7 @@
 # KaraQueue
 
+**Live:** https://karaqueue.party/
+
 A YouTube-powered karaoke queue app. Search for karaoke videos, add them to a shared queue, and let the party manage itself — all from any browser on the same network.
 
 ## Features
