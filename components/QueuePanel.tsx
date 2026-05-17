@@ -23,7 +23,7 @@ export default function QueuePanel({ queue, onRemove, onPlayNow }: Props) {
       {queue.length === 0 ? (
         <p className="text-gray-600 text-xs italic">Queue is empty</p>
       ) : (
-        <ol className="flex flex-col gap-1.5">
+        <ol className="flex flex-col gap-1.5 overflow-y-auto max-h-[364px]">
           {queue.map((item, i) => (
             <li
               key={item.id}

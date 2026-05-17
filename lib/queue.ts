@@ -47,3 +47,9 @@ export function playNow(id: string): QueueState {
   state = { nowPlaying: item, queue: remaining };
   return state;
 }
+
+export function playSongNow(song: Song): QueueState {
+  const item: QueueItem = { id: crypto.randomUUID(), song, addedAt: Date.now() };
+  state = { ...state, nowPlaying: item };
+  return state;
+}

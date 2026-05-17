@@ -7,6 +7,7 @@ import NowPlaying from "@/components/NowPlaying";
 import QueuePanel from "@/components/QueuePanel";
 import SearchBar from "@/components/SearchBar";
 import SearchResults from "@/components/SearchResults";
+import Recommendations from "@/components/Recommendations";
 import AuthButton from "@/components/AuthButton";
 import { QueueState, Song } from "@/types";
 
@@ -78,6 +79,15 @@ export default function Home() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
+    });
+    if (res.ok) setQueueState(await res.json());
+  }
+
+  async function handlePlaySong(song: Song) {
+    const res = await fetch("/api/queue/play-song", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ song }),
     });
     if (res.ok) setQueueState(await res.json());
   }
@@ -155,6 +165,11 @@ export default function Home() {
 
           <div className="border-t border-gray-800" />
           <NowPlaying nowPlaying={queueState.nowPlaying} onSkip={handleAdvance} />
+          <Recommendations
+            nowPlaying={queueState.nowPlaying?.song ?? null}
+            onAdd={handleAdd}
+            onPlay={handlePlaySong}
+          />
           <div className="border-t border-gray-800" />
           <QueuePanel queue={queueState.queue} onRemove={handleRemove} onPlayNow={handlePlayNow} />
         </aside>

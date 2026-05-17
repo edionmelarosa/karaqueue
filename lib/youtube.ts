@@ -3,7 +3,7 @@ import { Song } from "@/types";
 const API_KEY = process.env.YOUTUBE_API_KEY;
 const BASE_URL = "https://www.googleapis.com/youtube/v3";
 
-export async function searchYouTube(query: string): Promise<Song[]> {
+export async function searchYouTube(query: string, maxResults = 10): Promise<Song[]> {
   if (!API_KEY) throw new Error("YOUTUBE_API_KEY is not set");
 
   // Step 1: search for videos
@@ -11,7 +11,7 @@ export async function searchYouTube(query: string): Promise<Song[]> {
     part: "snippet",
     q: `${query} karaoke`,
     type: "video",
-    maxResults: "10",
+    maxResults: String(maxResults),
     key: API_KEY,
   });
 
@@ -44,7 +44,6 @@ export async function searchYouTube(query: string): Promise<Song[]> {
 
   return items
     .filter((item: any) => embeddableIds.has(item.id.videoId))
-    .slice(0, 5)
     .map((item: any) => ({
       videoId: item.id.videoId,
       title: item.snippet.title,
