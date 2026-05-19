@@ -12,29 +12,35 @@ declare global {
 
 interface Props {
   videoId: string | null;
-  onEnded: () => void;
+  startedAt?: number;
+  onEnded?: () => void;
 }
 
-export default function YouTubePlayer({ videoId, onEnded }: Props) {
+export default function YouTubePlayer({ videoId, startedAt, onEnded }: Props) {
   const playerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const readyRef = useRef(false);
   const onEndedRef = useRef(onEnded);
   onEndedRef.current = onEnded;
+  const startedAtRef = useRef(startedAt);
+  startedAtRef.current = startedAt;
 
   const createPlayer = useCallback((vid: string) => {
     if (!containerRef.current) return;
     if (playerRef.current) {
       playerRef.current.destroy();
     }
+    const elapsedSeconds = startedAtRef.current
+      ? Math.floor((Date.now() - startedAtRef.current) / 1000)
+      : 0;
     playerRef.current = new window.YT.Player(containerRef.current, {
       videoId: vid,
-      playerVars: { autoplay: 1, controls: 1, rel: 0, origin: window.location.origin },
+      playerVars: { autoplay: 1, controls: 1, rel: 0, origin: window.location.origin, start: elapsedSeconds },
       events: {
         onReady: (e: any) => e.target.playVideo(),
         onStateChange: (e: any) => {
           if (e.data === window.YT.PlayerState.ENDED) {
-            onEndedRef.current();
+            onEndedRef.current?.();
           }
         },
       },

@@ -4,7 +4,7 @@ import { QueueItem } from "@/types";
 
 interface Props {
   nowPlaying: QueueItem | null;
-  onSkip: () => void;
+  onSkip?: () => void;
   compact?: boolean;
 }
 

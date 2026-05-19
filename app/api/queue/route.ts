@@ -2,18 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { getQueue, addToQueue } from "@/lib/queue";
 import { Song } from "@/types";
 
-export async function GET() {
-  return NextResponse.json(getQueue());
+export async function GET(req: NextRequest) {
+  const sessionId = req.headers.get("X-Session-Id") ?? "";
+  return NextResponse.json(getQueue(sessionId));
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null);
-  const song: Song = body?.song;
+  const sessionId = req.headers.get("X-Session-Id") ?? "";
+  const body = await req.json().catch(() => null) as { song?: Song } | null;
+  const song = body?.song;
 
   if (!song?.videoId || !song?.title) {
     return NextResponse.json({ error: "Invalid song" }, { status: 400 });
   }
 
-  const state = addToQueue(song);
-  return NextResponse.json(state);
+  return NextResponse.json(addToQueue(sessionId, song));
 }
