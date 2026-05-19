@@ -6,11 +6,12 @@ interface Props {
   queue: QueueItem[];
   deviceId: string | null;
   isHost: boolean;
+  isInSession: boolean;
   onRemove: (id: string) => void;
   onPlayNow: (id: string) => void;
 }
 
-export default function QueuePanel({ queue, deviceId, isHost, onRemove, onPlayNow }: Props) {
+export default function QueuePanel({ queue, deviceId, isHost, isInSession, onRemove, onPlayNow }: Props) {
   return (
     <div className="flex flex-col gap-2 md:h-full min-h-0">
       <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400">
@@ -42,7 +43,7 @@ export default function QueuePanel({ queue, deviceId, isHost, onRemove, onPlayNo
               <span className="text-gray-300 text-sm leading-tight line-clamp-2 flex-1 min-w-0">
                 {item.song.title}
               </span>
-              {isHost && (
+              {isInSession && (
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     onClick={() => onPlayNow(item.id)}

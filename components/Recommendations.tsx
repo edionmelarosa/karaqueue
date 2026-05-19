@@ -6,7 +6,7 @@ import { Song } from "@/types";
 interface Props {
   nowPlaying: Song | null;
   onAdd: (song: Song) => void;
-  onPlay: (song: Song) => void;
+  onPlay?: (song: Song) => void | Promise<void>;
 }
 
 const enabled = process.env.NEXT_PUBLIC_RECOMMENDATIONS !== "false";
@@ -64,15 +64,17 @@ export default function Recommendations({ nowPlaying, onAdd, onPlay }: Props) {
                   alt={song.title}
                   className="w-16 aspect-video object-cover rounded"
                 />
-                <button
-                  onClick={() => onPlay(song)}
-                  className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded"
-                  title="Play now"
-                >
-                  <svg className="w-5 h-5 text-white drop-shadow" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </button>
+                {onPlay && (
+                  <button
+                    onClick={() => onPlay(song)}
+                    className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded"
+                    title="Play now"
+                  >
+                    <svg className="w-5 h-5 text-white drop-shadow" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </button>
+                )}
               </div>
               <div className="flex flex-col flex-1 min-w-0">
                 <a

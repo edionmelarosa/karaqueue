@@ -301,7 +301,7 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
         </span>
 
         <div className="ml-auto flex items-center gap-1 min-w-0 flex-shrink overflow-hidden">
-          <NowPlaying compact nowPlaying={queueState.nowPlaying} onSkip={isHost ? handleAdvance : undefined} />
+          <NowPlaying compact nowPlaying={queueState.nowPlaying} onSkip={sessionInfo != null ? handleAdvance : undefined} />
           <button
             onClick={handleLeave}
             className="flex-shrink-0 text-[10px] text-gray-600 hover:text-gray-400 transition px-2 py-1 rounded hover:bg-gray-800"
@@ -380,6 +380,7 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
               queue={queueState.queue}
               deviceId={deviceId}
               isHost={isHost}
+              isInSession={sessionInfo != null}
               onRemove={handleRemove}
               onPlayNow={handlePlayNow}
             />
