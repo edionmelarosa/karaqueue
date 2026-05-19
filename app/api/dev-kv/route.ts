@@ -1,17 +1,16 @@
-// Node.js-only KV proxy for local dev. No `export const runtime = 'edge'` so
-// it runs in the Node.js process where globalThis is shared across all routes.
-// @cloudflare/next-on-pages skips this file (not edge runtime) so it is never
-// deployed to Cloudflare Pages.
+// Local-dev KV proxy. Shares in-memory state across edge-sandboxed route
+// modules in `next dev` via a module-level Map (the edge sandbox reuses
+// the same module instance per dev-server process). Never called in
+// production — real Cloudflare KV bindings are used there (KV_STORE is unset).
+export const runtime = 'edge';
+
 import { NextRequest, NextResponse } from "next/server";
 
 type Entry = { value: string; expiresAt: number };
 
-declare global {
-  // eslint-disable-next-line no-var
-  var __kqDevStore: Map<string, Entry> | undefined;
-}
-if (!globalThis.__kqDevStore) globalThis.__kqDevStore = new Map();
-const store = globalThis.__kqDevStore;
+// Module-level store: survives across requests within the same dev-server
+// process because Next.js edge mode reuses module instances in development.
+const store = new Map<string, Entry>();
 
 export async function GET(req: NextRequest) {
   const key = req.nextUrl.searchParams.get("key");

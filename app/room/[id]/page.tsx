@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = 'edge';
+
 import { use, useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import YouTubePlayer from "@/components/YouTubePlayer";
