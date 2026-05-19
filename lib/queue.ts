@@ -2,12 +2,9 @@ import { QueueItem, QueueState, Song } from "@/types";
 import { localKV } from "@/lib/session";
 
 async function getKV(): Promise<KVNamespace> {
-  try {
-    const { getRequestContext } = await import("@cloudflare/next-on-pages");
-    return getRequestContext().env.QUEUE_KV;
-  } catch {
-    return localKV;
-  }
+  if (process.env.KV_STORE === "memory") return localKV;
+  const { getRequestContext } = await import("@cloudflare/next-on-pages");
+  return getRequestContext().env.QUEUE_KV;
 }
 
 function kvKey(sessionId: string) {

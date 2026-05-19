@@ -10,32 +10,27 @@ export function generateSessionId(): string {
   return Array.from(bytes, (b) => CHARS[b % CHARS.length]).join("");
 }
 
-// In-memory fallback used in local dev (no Cloudflare KV available).
-// Uses globalThis so the store survives hot-module reloads and is shared
-// across all route modules within the same Node.js process.
-declare global {
-  // eslint-disable-next-line no-var
-  var __kqMemStore: Map<string, { value: string; expiresAt: number }> | undefined;
-}
-if (!globalThis.__kqMemStore) {
-  globalThis.__kqMemStore = new Map();
-}
-const memStore = globalThis.__kqMemStore;
+// HTTP-proxy KV for local dev (KV_STORE=memory). All calls go to /api/dev-kv
+// which is a plain Node.js route with a shared globalThis store — the only way
+// to share state across Next.js edge-sandbox route modules in dev.
+const DEV_KV_BASE = `${process.env.DEV_SERVER_URL ?? "http://localhost:3000"}/api/dev-kv`;
 
 export const localKV: KVNamespace = {
   async get(key: string) {
-    const entry = memStore.get(key);
-    if (!entry || Date.now() > entry.expiresAt) {
-      memStore.delete(key);
-      return null;
-    }
-    return entry.value;
+    const res = await fetch(`${DEV_KV_BASE}?key=${encodeURIComponent(key)}`);
+    const { value } = await res.json() as { value: string | null };
+    return value;
   },
   async put(key: string, value: string, opts?: { expirationTtl?: number }) {
-    const ttlMs = (opts?.expirationTtl ?? SESSION_TTL_MS / 1000) * 1000;
-    memStore.set(key, { value, expiresAt: Date.now() + ttlMs });
+    await fetch(DEV_KV_BASE, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, value, expirationTtl: opts?.expirationTtl }),
+    });
   },
-  async delete(key: string) { memStore.delete(key); },
+  async delete(key: string) {
+    await fetch(`${DEV_KV_BASE}?key=${encodeURIComponent(key)}`, { method: "DELETE" });
+  },
   async list() { return { keys: [], list_complete: true, cacheStatus: null }; },
   async getWithMetadata(key: string) {
     const value = await localKV.get(key);

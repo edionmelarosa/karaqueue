@@ -24,12 +24,14 @@ export default function NowPlaying({ nowPlaying, onSkip, compact }: Props) {
         <span className="text-white text-xs font-medium truncate max-w-[160px] md:max-w-[260px] animate-pulse">
           {nowPlaying.song.title}
         </span>
-        <button
-          onClick={onSkip}
-          className="flex-shrink-0 text-xs px-2 py-0.5 rounded bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors border border-gray-700"
-        >
-          Skip ›
-        </button>
+        {onSkip && (
+          <button
+            onClick={onSkip}
+            className="flex-shrink-0 text-xs px-2 py-0.5 rounded bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors border border-gray-700"
+          >
+            Skip ›
+          </button>
+        )}
       </div>
     );
   }
@@ -75,7 +77,7 @@ export default function NowPlaying({ nowPlaying, onSkip, compact }: Props) {
       ) : (
         <p className="text-gray-600 text-sm italic">Nothing playing</p>
       )}
-      {nowPlaying && (
+      {nowPlaying && onSkip && (
         <button
           onClick={onSkip}
           className="self-start text-xs px-3 py-1 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors border border-gray-700"

@@ -1,13 +1,12 @@
+export const runtime = 'edge';
+
 import { NextRequest, NextResponse } from "next/server";
-import { getSession, getLocalKV } from "@/lib/session";
+import { getSession, localKV } from "@/lib/session";
 
 async function getKV(): Promise<KVNamespace> {
-  try {
-    const { getRequestContext } = await import("@cloudflare/next-on-pages");
-    return getRequestContext().env.QUEUE_KV;
-  } catch {
-    return getLocalKV();
-  }
+  if (process.env.KV_STORE === "memory") return localKV;
+  const { getRequestContext } = await import("@cloudflare/next-on-pages");
+  return getRequestContext().env.QUEUE_KV;
 }
 
 export async function GET(
