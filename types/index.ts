@@ -1,3 +1,11 @@
+export type Session = {
+  id: string;
+  hostDeviceId: string;
+  createdAt: number;
+  expiresAt: number;
+  members: string[];
+};
+
 export type Song = {
   videoId: string;
   title: string;
@@ -9,6 +17,7 @@ export type QueueItem = {
   id: string;
   song: Song;
   addedAt: number;
+  startedAt?: number;
 };
 
 export type QueueState = {

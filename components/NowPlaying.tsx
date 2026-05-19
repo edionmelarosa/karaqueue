@@ -4,7 +4,7 @@ import { QueueItem } from "@/types";
 
 interface Props {
   nowPlaying: QueueItem | null;
-  onSkip: () => void;
+  onSkip?: () => void;
   compact?: boolean;
 }
 
@@ -12,7 +12,7 @@ export default function NowPlaying({ nowPlaying, onSkip, compact }: Props) {
   if (compact) {
     if (!nowPlaying) return null;
     return (
-      <div className="flex items-center gap-2 ml-auto min-w-0 flex-shrink">
+      <div className="flex items-center gap-2 min-w-0 flex-shrink overflow-hidden">
         <span className="text-[10px] font-bold uppercase tracking-widest text-pink-400 flex-shrink-0 hidden sm:block">
           Now Playing
         </span>

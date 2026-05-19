@@ -1,17 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import YouTubePlayer from "@/components/YouTubePlayer";
-import NowPlaying from "@/components/NowPlaying";
-import QueuePanel from "@/components/QueuePanel";
-import SearchBar from "@/components/SearchBar";
-import SearchResults from "@/components/SearchResults";
-import Recommendations from "@/components/Recommendations";
-import AdUnit from "@/components/AdUnit";
-import { QueueState, Song } from "@/types";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-const EMPTY_STATE: QueueState = { nowPlaying: null, queue: [] };
 const DEVICE_ID_KEY = "kq_device_id";
+const SESSION_ID_KEY = "kq_session_id";
+const SESSION_ROLE_KEY = "kq_session_role";
 
 function getOrCreateDeviceId(): string {
   let id = localStorage.getItem(DEVICE_ID_KEY);
@@ -22,215 +16,198 @@ function getOrCreateDeviceId(): string {
   return id;
 }
 
-export default function Home() {
-  const [queueState, setQueueState] = useState<QueueState>(EMPTY_STATE);
-  const [searchResults, setSearchResults] = useState<Song[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const [deviceId, setDeviceId] = useState<string | null>(null);
+export default function LobbyPage() {
+  const router = useRouter();
+  const [joinCode, setJoinCode] = useState("");
+  const [loading, setLoading] = useState<"create" | "join" | "solo" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const joinInputRef = useRef<HTMLInputElement>(null);
 
+  // Clear stale session data on lobby load
   useEffect(() => {
-    setDeviceId(getOrCreateDeviceId());
+    localStorage.removeItem(SESSION_ID_KEY);
+    localStorage.removeItem(SESSION_ROLE_KEY);
   }, []);
 
-  const deviceIdRef = useRef(deviceId);
-  useEffect(() => { deviceIdRef.current = deviceId; }, [deviceId]);
-
-  function queueHeaders(extra?: Record<string, string>): Record<string, string> {
-    return { "X-Device-Id": deviceIdRef.current ?? "", ...extra };
-  }
-  const [duplicateError, setDuplicateError] = useState<string | null>(null);
-
-  const fetchQueue = useCallback(async () => {
-    const did = deviceIdRef.current;
-    if (!did) return;
-    const res = await fetch("/api/queue", { headers: { "X-Device-Id": did } });
-    if (res.ok) setQueueState(await res.json() as QueueState);
-  }, []);
-
-  useEffect(() => {
-    if (!deviceId) return;
-    fetchQueue();
-    const id = setInterval(fetchQueue, 2000);
-    return () => clearInterval(id);
-  }, [fetchQueue, deviceId]);
-
-  async function handleSearch(query: string) {
-    setSearchLoading(true);
-    setSearchError(null);
+  async function handleCreate() {
+    setLoading("create");
+    setError(null);
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-      const data = await res.json() as any;
-      if (res.status === 429) throw new Error(data.message ?? "quota_exceeded");
-      if (!res.ok) throw new Error(data.error ?? "Search failed");
-      setSearchResults(data);
+      const did = getOrCreateDeviceId();
+      const res = await fetch("/api/session/create", {
+        method: "POST",
+        headers: { "X-Device-Id": did },
+      });
+      if (!res.ok) throw new Error("Failed to create session");
+      const data = await res.json() as { sessionId: string };
+      localStorage.setItem(SESSION_ID_KEY, data.sessionId);
+      localStorage.setItem(SESSION_ROLE_KEY, "host");
+      router.push(`/room/${data.sessionId}`);
     } catch (e: any) {
-      setSearchError(e.message);
-      setSearchResults([]);
-    } finally {
-      setSearchLoading(false);
+      setError(e.message);
+      setLoading(null);
     }
   }
 
-  function handleClearSearch() {
-    setSearchResults([]);
-    setSearchError(null);
-    setDuplicateError(null);
-  }
-
-  async function handleAdd(song: Song) {
-    const alreadyQueued =
-      queueState.nowPlaying?.song.videoId === song.videoId ||
-      queueState.queue.some((item) => item.song.videoId === song.videoId);
-    if (alreadyQueued) {
-      setDuplicateError(`"${song.title}" is already in the queue`);
+  async function handleJoin() {
+    const code = joinCode.trim().toUpperCase();
+    if (!code) {
+      joinInputRef.current?.focus();
       return;
     }
-    setDuplicateError(null);
-    const res = await fetch("/api/queue", {
-      method: "POST",
-      headers: queueHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify({ song }),
-    });
-    if (res.ok) {
-      setQueueState(await res.json() as QueueState);
-      handleClearSearch();
+    setLoading("join");
+    setError(null);
+    try {
+      const did = getOrCreateDeviceId();
+      const res = await fetch("/api/session/join", {
+        method: "POST",
+        headers: { "X-Device-Id": did, "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: code }),
+      });
+      if (!res.ok) throw new Error("Session not found or has expired");
+      const data = await res.json() as { sessionId: string; hostDeviceId: string };
+      localStorage.setItem(SESSION_ID_KEY, data.sessionId);
+      localStorage.setItem(SESSION_ROLE_KEY, data.hostDeviceId === did ? "host" : "guest");
+      router.push(`/room/${data.sessionId}`);
+    } catch (e: any) {
+      setError(e.message);
+      setLoading(null);
     }
   }
 
-  async function handleAdvance() {
-    const res = await fetch("/api/queue/advance", { method: "POST", headers: queueHeaders() });
-    if (res.ok) setQueueState(await res.json() as QueueState);
+  function handleSolo() {
+    setLoading("solo");
+    const roomId = crypto.randomUUID().slice(0, 8).toUpperCase();
+    localStorage.setItem(SESSION_ID_KEY, roomId);
+    localStorage.setItem(SESSION_ROLE_KEY, "solo");
+    router.push(`/room/${roomId}`);
   }
 
-  async function handleRemove(id: string) {
-    const res = await fetch(`/api/queue/${id}`, { method: "DELETE", headers: queueHeaders() });
-    if (res.ok) setQueueState(await res.json() as QueueState);
-  }
-
-  async function handlePlayNow(id: string) {
-    const res = await fetch("/api/queue/play-now", {
-      method: "POST",
-      headers: queueHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify({ id }),
-    });
-    if (res.ok) setQueueState(await res.json() as QueueState);
-  }
-
-  async function handlePlaySong(song: Song) {
-    const res = await fetch("/api/queue/play-song", {
-      method: "POST",
-      headers: queueHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify({ song }),
-    });
-    if (res.ok) setQueueState(await res.json() as QueueState);
-  }
-
-  const videoId = queueState.nowPlaying?.song.videoId ?? null;
-  const hasResults = searchResults.length > 0;
+  const busy = loading !== null;
 
   return (
-    <div className="min-h-screen md:h-screen bg-[#0a0a0f] text-white flex flex-col overflow-x-hidden">
-      {/* Header */}
-      <header className="px-4 py-3 border-b border-gray-800 flex items-center gap-2 flex-shrink-0 min-w-0 overflow-hidden">
-        <h1 className="text-xl md:text-2xl font-black tracking-tight text-cyan-400 drop-shadow-[0_0_8px_#00d4ff] flex-shrink-0">
+    <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col items-center justify-center px-4">
+      {/* Logo */}
+      <div className="mb-10 text-center">
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-cyan-400 drop-shadow-[0_0_16px_#00d4ff]">
           KaraQueue
         </h1>
-        <span className="text-gray-600 text-sm flex-shrink-0">•</span>
-        <span className="text-gray-500 text-xs md:text-sm flex-shrink-0">
-          {queueState.queue.length > 0
-            ? `${queueState.queue.length} song${queueState.queue.length !== 1 ? "s" : ""} in queue`
-            : "Queue empty"}
-        </span>
-        <NowPlaying compact nowPlaying={queueState.nowPlaying} onSkip={handleAdvance} />
-      </header>
+        <p className="mt-2 text-gray-500 text-sm">YouTube karaoke queue for you and your friends</p>
+      </div>
 
-      {/* Main content */}
-      <main className="flex flex-col md:flex-row md:flex-1 md:min-h-0 md:overflow-hidden">
-        {/* Player — top on mobile, left column on desktop */}
-        <div className="flex flex-col p-4 gap-3 min-w-0 md:flex-1">
-          <YouTubePlayer videoId={videoId} onEnded={handleAdvance} />
-          {process.env.NEXT_PUBLIC_ADSENSE_SLOT && (
-            <AdUnit
-              slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT}
-              format="horizontal"
-              className="w-full"
-            />
-          )}
-          {queueState.nowPlaying && (
-            <div className="overflow-hidden whitespace-nowrap bg-gray-900 rounded px-3 py-1.5 border border-gray-800">
-              <p className="inline-block animate-[marquee_20s_linear_infinite] text-cyan-400 text-sm font-medium">
-                ♪&nbsp;&nbsp;{queueState.nowPlaying.song.title}&nbsp;&nbsp;—&nbsp;&nbsp;{queueState.nowPlaying.song.channelTitle}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              </p>
+      {/* Cards */}
+      <div className="w-full max-w-sm flex flex-col gap-3">
+        {/* Create Session */}
+        <button
+          onClick={handleCreate}
+          disabled={busy}
+          className="group relative w-full rounded-2xl border border-cyan-800/60 bg-cyan-950/30 hover:bg-cyan-950/50 hover:border-cyan-600 transition-all p-5 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400" aria-hidden="true">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="19" y1="8" x2="19" y2="14" />
+                <line x1="22" y1="11" x2="16" y2="11" />
+              </svg>
             </div>
-          )}
+            <div>
+              <p className="font-semibold text-white text-sm">
+                {loading === "create" ? "Creating session…" : "Create a session"}
+              </p>
+              <p className="text-gray-500 text-xs mt-0.5">Host a room and invite friends with a code</p>
+            </div>
+          </div>
+        </button>
+
+        {/* Join Session */}
+        <div className="rounded-2xl border border-gray-700/60 bg-gray-900/40 p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gray-700/40 flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300" aria-hidden="true">
+                <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+                <polyline points="10 17 15 12 10 7" />
+                <line x1="15" y1="12" x2="3" y2="12" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold text-white text-sm">Join a session</p>
+              <p className="text-gray-500 text-xs mt-0.5">Enter a room code to join a friend's session</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <input
+              ref={joinInputRef}
+              type="text"
+              value={joinCode}
+              onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setError(null); }}
+              onKeyDown={(e) => e.key === "Enter" && handleJoin()}
+              placeholder="Enter code"
+              maxLength={8}
+              disabled={busy}
+              className="flex-1 bg-gray-800 border border-gray-600 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-700 font-mono tracking-widest uppercase disabled:opacity-50"
+            />
+            <button
+              onClick={handleJoin}
+              disabled={busy || !joinCode.trim()}
+              className="px-4 py-2 rounded-xl bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {loading === "join" ? "…" : "Join"}
+            </button>
+          </div>
         </div>
 
-        {/* Sidebar — below player on mobile, right column on desktop */}
-        <aside className="w-full md:w-80 flex-shrink-0 border-t md:border-t-0 md:border-l border-gray-800 flex flex-col p-4 gap-4 md:overflow-hidden">
-          {/* Search + results — always at top, no scroll needed */}
-          <div className="flex flex-col gap-2">
-            <p className="text-[10px] text-gray-600 uppercase tracking-widest font-semibold">
-              Add to Queue
-            </p>
-            <SearchBar
-              onSearch={handleSearch}
-              onClear={handleClearSearch}
-              loading={searchLoading}
-              hasResults={hasResults}
-            />
-            {searchLoading && (
-              <p className="text-gray-500 text-xs animate-pulse text-center py-2">
-                Searching karaoke videos...
+        {error && (
+          <p className="text-red-400 text-xs text-center">{error}</p>
+        )}
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 my-1">
+          <div className="flex-1 border-t border-gray-800" />
+          <span className="text-gray-700 text-xs">or</span>
+          <div className="flex-1 border-t border-gray-800" />
+        </div>
+
+        {/* Solo Mode */}
+        <button
+          onClick={handleSolo}
+          disabled={busy}
+          className="w-full rounded-2xl border border-gray-800 bg-transparent hover:bg-gray-900/60 transition-all p-5 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gray-800/60 flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400" aria-hidden="true">
+                <path d="M9 18V5l12-2v13" />
+                <circle cx="6" cy="18" r="3" />
+                <circle cx="18" cy="16" r="3" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-300 text-sm">
+                {loading === "solo" ? "Starting…" : "Solo mode"}
               </p>
-            )}
-            {searchError && (
-              <div className="rounded-lg bg-yellow-950/60 border border-yellow-800/50 px-3 py-2">
-                <p className="text-yellow-400 text-xs font-semibold">
-                  {searchError.includes("temporarily unavailable") ? "⚠ Search limit reached" : "⚠ Search failed"}
-                </p>
-                <p className="text-yellow-600 text-xs mt-0.5">{searchError}</p>
-              </div>
-            )}
-            {duplicateError && (
-              <div className="rounded-lg bg-orange-950/60 border border-orange-800/50 px-3 py-2">
-                <p className="text-orange-400 text-xs font-semibold">⚠ Already in queue</p>
-                <p className="text-orange-600 text-xs mt-0.5">{duplicateError}</p>
-              </div>
-            )}
-            {hasResults && (
-              <SearchResults results={searchResults} onAdd={handleAdd} />
-            )}
+              <p className="text-gray-600 text-xs mt-0.5">Just you — queue songs for yourself</p>
+            </div>
           </div>
+        </button>
+      </div>
 
-          <div className="border-t border-gray-800" />
-          <Recommendations
-            nowPlaying={queueState.nowPlaying?.song ?? null}
-            onAdd={handleAdd}
-            onPlay={handlePlaySong}
-          />
-          <div className="border-t border-gray-800" />
-          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-            <QueuePanel queue={queueState.queue} onRemove={handleRemove} onPlayNow={handlePlayNow} />
-          </div>
-        </aside>
-      </main>
-
-      {/* YouTube attribution — required by YouTube API ToS */}
-      <footer className="flex items-center justify-end gap-2 px-6 py-2 border-t border-gray-800/50 flex-shrink-0">
-        <span className="text-gray-600 text-[10px]">Powered by</span>
+      {/* Footer */}
+      <footer className="mt-12 flex items-center gap-2 text-gray-700 text-[10px]">
+        <span>Powered by</span>
         <a
           href="https://www.youtube.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-white transition-colors"
+          className="flex items-center gap-1 hover:text-gray-500 transition-colors"
           aria-label="YouTube"
         >
-          <svg viewBox="0 0 90 20" className="h-3 fill-current text-red-600" aria-hidden="true">
+          <svg viewBox="0 0 90 20" className="h-3 fill-current text-red-700" aria-hidden="true">
             <path d="M27.9727 3.12324C27.6435 1.89323 26.6768 0.926623 25.4468 0.597366C23.2197 2.24288e-07 14.285 0 14.285 0C14.285 0 5.35042 2.24288e-07 3.12323 0.597366C1.89323 0.926623 0.926623 1.89323 0.597366 3.12324C2.24288e-07 5.35042 0 10 0 10C0 10 2.24288e-07 14.6496 0.597366 16.8768C0.926623 18.1068 1.89323 19.0734 3.12323 19.4026C5.35042 20 14.285 20 14.285 20C14.285 20 23.2197 20 25.4468 19.4026C26.6768 19.0734 27.6435 18.1068 27.9727 16.8768C28.5701 14.6496 28.5701 10 28.5701 10C28.5701 10 28.5677 5.35042 27.9727 3.12324Z" />
             <path d="M11.4253 14.2854L18.8477 10.0004L11.4253 5.71533V14.2854Z" className="fill-white" />
           </svg>
-          <span className="font-medium">YouTube</span>
+          <span>YouTube</span>
         </a>
       </footer>
     </div>

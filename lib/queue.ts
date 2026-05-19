@@ -1,62 +1,77 @@
 import { QueueItem, QueueState, Song } from "@/types";
+import { localKV } from "@/lib/session";
 
-function kvKey(deviceId: string) {
-  return `queue_state:${deviceId}`;
+async function getKV(): Promise<KVNamespace> {
+  try {
+    const { getRequestContext } = await import("@cloudflare/next-on-pages");
+    return getRequestContext().env.QUEUE_KV;
+  } catch {
+    return localKV;
+  }
 }
 
-async function readState(kv: KVNamespace, deviceId: string): Promise<QueueState> {
-  const raw = await kv.get(kvKey(deviceId));
+function kvKey(sessionId: string) {
+  return `queue_state:${sessionId}`;
+}
+
+async function readState(kv: KVNamespace, sessionId: string): Promise<QueueState> {
+  const raw = await kv.get(kvKey(sessionId));
   if (!raw) return { nowPlaying: null, queue: [] };
   return JSON.parse(raw) as QueueState;
 }
 
-async function writeState(kv: KVNamespace, deviceId: string, state: QueueState): Promise<void> {
-  await kv.put(kvKey(deviceId), JSON.stringify(state));
+async function writeState(kv: KVNamespace, sessionId: string, state: QueueState): Promise<void> {
+  await kv.put(kvKey(sessionId), JSON.stringify(state), { expirationTtl: 86400 });
 }
 
-export async function getQueue(kv: KVNamespace, deviceId: string): Promise<QueueState> {
-  return readState(kv, deviceId);
+export async function getQueue(sessionId: string): Promise<QueueState> {
+  return readState(await getKV(), sessionId);
 }
 
-export async function addToQueue(kv: KVNamespace, deviceId: string, song: Song): Promise<QueueState> {
-  const state = await readState(kv, deviceId);
+export async function addToQueue(sessionId: string, song: Song): Promise<QueueState> {
+  const kv = await getKV();
+  const state = await readState(kv, sessionId);
   const item: QueueItem = { id: crypto.randomUUID(), song, addedAt: Date.now() };
-  const next =
-    state.nowPlaying === null
-      ? { ...state, nowPlaying: item }
-      : { ...state, queue: [...state.queue, item] };
-  await writeState(kv, deviceId, next);
+  const next = state.nowPlaying === null
+    ? { ...state, nowPlaying: { ...item, startedAt: Date.now() } }
+    : { ...state, queue: [...state.queue, item] };
+  await writeState(kv, sessionId, next);
   return next;
 }
 
-export async function advanceQueue(kv: KVNamespace, deviceId: string): Promise<QueueState> {
-  const state = await readState(kv, deviceId);
+export async function advanceQueue(sessionId: string): Promise<QueueState> {
+  const kv = await getKV();
+  const state = await readState(kv, sessionId);
   const [next, ...rest] = state.queue;
-  const updated = { nowPlaying: next ?? null, queue: rest };
-  await writeState(kv, deviceId, updated);
+  const nowPlaying = next ? { ...next, startedAt: Date.now() } : null;
+  const updated = { nowPlaying, queue: rest };
+  await writeState(kv, sessionId, updated);
   return updated;
 }
 
-export async function removeFromQueue(kv: KVNamespace, deviceId: string, id: string): Promise<QueueState> {
-  const state = await readState(kv, deviceId);
-  const updated = { ...state, queue: state.queue.filter((i) => i.id !== id) };
-  await writeState(kv, deviceId, updated);
+export async function removeFromQueue(sessionId: string, id: string): Promise<QueueState> {
+  const kv = await getKV();
+  const state = await readState(kv, sessionId);
+  const updated = { ...state, queue: state.queue.filter((item) => item.id !== id) };
+  await writeState(kv, sessionId, updated);
   return updated;
 }
 
-export async function playNow(kv: KVNamespace, deviceId: string, id: string): Promise<QueueState> {
-  const state = await readState(kv, deviceId);
+export async function playNow(sessionId: string, id: string): Promise<QueueState> {
+  const kv = await getKV();
+  const state = await readState(kv, sessionId);
   const item = state.queue.find((i) => i.id === id);
   if (!item) return state;
-  const updated = { nowPlaying: item, queue: state.queue.filter((i) => i.id !== id) };
-  await writeState(kv, deviceId, updated);
+  const updated = { nowPlaying: { ...item, startedAt: Date.now() }, queue: state.queue.filter((i) => i.id !== id) };
+  await writeState(kv, sessionId, updated);
   return updated;
 }
 
-export async function playSongNow(kv: KVNamespace, deviceId: string, song: Song): Promise<QueueState> {
-  const state = await readState(kv, deviceId);
-  const item: QueueItem = { id: crypto.randomUUID(), song, addedAt: Date.now() };
+export async function playSongNow(sessionId: string, song: Song): Promise<QueueState> {
+  const kv = await getKV();
+  const state = await readState(kv, sessionId);
+  const item: QueueItem = { id: crypto.randomUUID(), song, addedAt: Date.now(), startedAt: Date.now() };
   const updated = { ...state, nowPlaying: item };
-  await writeState(kv, deviceId, updated);
+  await writeState(kv, sessionId, updated);
   return updated;
 }
