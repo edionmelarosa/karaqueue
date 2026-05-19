@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(npx @cloudflare/next-on-pages)",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(r\\) for r in d.get\\('routes',[]\\) if 'dev-kv' in str\\(r\\)]\")",
+      "Bash(git add *)"
     ]
   }
 }
