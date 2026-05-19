@@ -10,7 +10,7 @@ interface Props {
 
 export default function QueuePanel({ queue, onRemove, onPlayNow }: Props) {
   return (
-    <div className="flex flex-col gap-2 h-full min-h-0">
+    <div className="flex flex-col gap-2 md:h-full min-h-0">
       <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400">
         Queue{" "}
         {queue.length > 0 && (

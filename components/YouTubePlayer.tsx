@@ -35,6 +35,8 @@ export default function YouTubePlayer({ videoId, startedAt, onEnded }: Props) {
       : 0;
     playerRef.current = new window.YT.Player(containerRef.current, {
       videoId: vid,
+      width: "100%",
+      height: "100%",
       playerVars: { autoplay: 1, controls: 1, rel: 0, origin: window.location.origin, start: elapsedSeconds },
       events: {
         onReady: (e: any) => e.target.playVideo(),
