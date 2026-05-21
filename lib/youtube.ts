@@ -3,6 +3,62 @@ import { Song } from "@/types";
 const API_KEY = process.env.YOUTUBE_API_KEY;
 const BASE_URL = "https://www.googleapis.com/youtube/v3";
 
+export async function scrapeYouTubeMix(videoId: string, maxResults: number): Promise<Song[]> {
+  const url = `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}&list=RD${encodeURIComponent(videoId)}&hl=en`;
+
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "Accept-Language": "en-US,en;q=0.9",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    },
+  });
+
+  if (!res.ok) throw new Error(`YouTube mix scrape failed: ${res.status}`);
+
+  const html = await res.text();
+
+  const marker = "var ytInitialData = ";
+  const start = html.indexOf(marker);
+  if (start === -1) throw new Error("ytInitialData not found in mix page");
+
+  let depth = 0;
+  let i = start + marker.length;
+  const jsonStart = i;
+  for (; i < html.length; i++) {
+    if (html[i] === "{") depth++;
+    else if (html[i] === "}") {
+      depth--;
+      if (depth === 0) break;
+    }
+  }
+
+  const data = JSON.parse(html.slice(jsonStart, i + 1));
+
+  // The mix playlist lives in the sidebar panel
+  const panels: any[] =
+    data?.contents?.twoColumnWatchNextResults?.secondaryResults?.secondaryResults?.results ?? [];
+
+  const videos: Song[] = [];
+  for (const panel of panels) {
+    const v = panel?.compactVideoRenderer ?? panel?.compactAutoplayRenderer?.contents?.[0]?.compactVideoRenderer;
+    if (!v?.videoId || v.videoId === videoId) continue;
+    videos.push({
+      videoId: v.videoId,
+      title: v.title?.simpleText ?? v.title?.runs?.[0]?.text ?? "",
+      channelTitle:
+        v.shortBylineText?.runs?.[0]?.text ??
+        v.longBylineText?.runs?.[0]?.text ??
+        "",
+      thumbnailUrl: v.thumbnail?.thumbnails?.at(-1)?.url ?? "",
+    });
+    if (videos.length >= maxResults) break;
+  }
+
+  if (videos.length === 0) throw new Error("Mix scraper returned no results");
+  return videos;
+}
+
 async function scrapeYouTube(query: string, maxResults: number): Promise<Song[]> {
   const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + " karaoke")}&hl=en`;
 
