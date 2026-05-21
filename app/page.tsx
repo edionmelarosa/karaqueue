@@ -17,9 +17,9 @@ export default function LobbyPage() {
       <LobbyClient />
 
       {/* SEO content block — static prose Google can read */}
-      <section className="mt-16 max-w-xl text-center text-gray-600 text-xs leading-relaxed space-y-2">
+      <section className="mt-16 max-w-xl text-center text-gray-400 text-sm leading-relaxed space-y-2">
         <p>
-          <strong className="text-gray-500">KaraQueue</strong> is a free karaoke machine that runs
+          <strong className="text-gray-300">KaraQueue</strong> is a free karaoke machine that runs
           entirely in your browser. Search any song on YouTube, add it to a shared queue, and sing
           along with friends — no download, no sign-up, no subscription.
         </p>
@@ -27,7 +27,7 @@ export default function LobbyPage() {
           Host a karaoke night at home, at a party, or online. Share a room code and let everyone
           add their favourite songs to the queue. Works on any device.
         </p>
-        <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-2 text-gray-700">
+        <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-2 text-gray-400">
           <li>✓ Free karaoke online</li>
           <li>✓ YouTube karaoke search</li>
           <li>✓ Shared song queue</li>
