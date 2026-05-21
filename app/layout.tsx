@@ -56,6 +56,14 @@ export const metadata: Metadata = {
     title: "KaraQueue — Free Karaoke Online",
     description:
       "Free online karaoke machine powered by YouTube. Search songs, build a queue, and sing along with friends — no sign-up needed.",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "KaraQueue — Free Karaoke Online",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -63,6 +71,7 @@ export const metadata: Metadata = {
     description:
       "Free online karaoke machine powered by YouTube. Search songs, build a queue, and sing along — no sign-up needed.",
     creator: "@karaqueue",
+    images: ["/opengraph-image"],
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
@@ -90,12 +99,7 @@ const jsonLd = {
     "No download required",
     "No account required",
   ],
-  screenshot: `${BASE_URL}/og-image.png`,
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "5",
-    ratingCount: "1",
-  },
+  screenshot: `${BASE_URL}/opengraph-image`,
 };
 
 export default function RootLayout({
