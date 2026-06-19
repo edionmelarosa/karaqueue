@@ -17,6 +17,7 @@ declare global {
 export default function AdUnit({ slot, format = "auto", className }: AdUnitProps) {
   const client = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
   const pushed = useRef(false);
+  const insRef = useRef<HTMLModElement>(null);
 
   useEffect(() => {
     if (!client || pushed.current) return;
@@ -24,6 +25,18 @@ export default function AdUnit({ slot, format = "auto", className }: AdUnitProps
       (window.adsbygoogle = window.adsbygoogle || []).push({});
       pushed.current = true;
     } catch {}
+
+    // Collapse the wrapper when Google marks the ad as unfilled
+    const ins = insRef.current;
+    if (!ins) return;
+    const observer = new MutationObserver(() => {
+      if (ins.getAttribute("data-ad-status") === "unfilled") {
+        const wrapper = ins.parentElement;
+        if (wrapper) wrapper.style.display = "none";
+      }
+    });
+    observer.observe(ins, { attributes: true, attributeFilter: ["data-ad-status"] });
+    return () => observer.disconnect();
   }, [client]);
 
   if (!client) return null;
@@ -31,6 +44,7 @@ export default function AdUnit({ slot, format = "auto", className }: AdUnitProps
   return (
     <div className={className}>
       <ins
+        ref={insRef}
         className="adsbygoogle"
         style={{ display: "block" }}
         data-ad-client={client}
