@@ -26,17 +26,27 @@ export default function AdUnit({ slot, format = "auto", className }: AdUnitProps
       pushed.current = true;
     } catch {}
 
-    // Collapse the wrapper when Google marks the ad as unfilled
     const ins = insRef.current;
     if (!ins) return;
-    const observer = new MutationObserver(() => {
+
+    function collapseIfUnfilled() {
+      if (!ins) return;
       if (ins.getAttribute("data-ad-status") === "unfilled") {
+        ins.style.setProperty("display", "none", "important");
+        ins.style.setProperty("height", "0", "important");
         const wrapper = ins.parentElement;
         if (wrapper) wrapper.style.display = "none";
       }
-    });
-    observer.observe(ins, { attributes: true, attributeFilter: ["data-ad-status"] });
-    return () => observer.disconnect();
+    }
+
+    // Watch for Google setting data-ad-status
+    const observer = new MutationObserver(collapseIfUnfilled);
+    observer.observe(ins, { attributes: true, attributeFilter: ["data-ad-status", "style"] });
+
+    // Also check after a short delay in case the attribute was already set before we observed
+    const t = setTimeout(collapseIfUnfilled, 2000);
+
+    return () => { observer.disconnect(); clearTimeout(t); };
   }, [client]);
 
   if (!client) return null;
