@@ -295,8 +295,21 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
           </span>
         )}
 
-        <span className="text-gray-600 text-sm flex-shrink-0">•</span>
-        <span className="text-gray-500 text-xs md:text-sm flex-shrink-0">
+        {/* Mobile: compact icon + count */}
+        <div className="flex md:hidden items-center gap-1 flex-shrink-0">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600" aria-hidden="true">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <polyline points="3 6 4 7 6 5" />
+            <polyline points="3 12 4 13 6 11" />
+            <polyline points="3 18 4 19 6 17" />
+          </svg>
+          <span className="text-gray-500 text-xs tabular-nums">{queueState.queue.length}</span>
+        </div>
+        {/* Desktop: full text */}
+        <span className="hidden md:inline text-gray-600 text-sm flex-shrink-0">•</span>
+        <span className="hidden md:inline text-gray-500 text-sm flex-shrink-0">
           {queueState.queue.length > 0
             ? `${queueState.queue.length} song${queueState.queue.length !== 1 ? "s" : ""} in queue`
             : "Queue empty"}
