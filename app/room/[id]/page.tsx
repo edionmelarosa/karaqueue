@@ -295,21 +295,8 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
           </span>
         )}
 
-        {/* Mobile: compact icon + count */}
-        <div className="flex md:hidden items-center gap-1 flex-shrink-0">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600" aria-hidden="true">
-            <line x1="8" y1="6" x2="21" y2="6" />
-            <line x1="8" y1="12" x2="21" y2="12" />
-            <line x1="8" y1="18" x2="21" y2="18" />
-            <polyline points="3 6 4 7 6 5" />
-            <polyline points="3 12 4 13 6 11" />
-            <polyline points="3 18 4 19 6 17" />
-          </svg>
-          <span className="text-gray-500 text-xs tabular-nums">{queueState.queue.length}</span>
-        </div>
-        {/* Desktop: full text */}
-        <span className="hidden md:inline text-gray-600 text-sm flex-shrink-0">•</span>
-        <span className="hidden md:inline text-gray-500 text-sm flex-shrink-0">
+        <span className="text-gray-600 text-sm flex-shrink-0">•</span>
+        <span className="text-gray-500 text-xs md:text-sm flex-shrink-0">
           {queueState.queue.length > 0
             ? `${queueState.queue.length} song${queueState.queue.length !== 1 ? "s" : ""} in queue`
             : "Queue empty"}
@@ -322,18 +309,6 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
         <div className="hidden md:flex items-center gap-2 min-w-0 flex-shrink overflow-hidden">
           <NowPlaying compact nowPlaying={queueState.nowPlaying} onSkip={sessionInfo != null ? handleAdvance : undefined} />
         </div>
-        <a
-          href="https://ko-fi.com/edionlarosa"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FF5E5B] hover:bg-[#ff4744] active:bg-[#e03a38] transition-colors text-white font-bold shadow-[0_0_10px_#ff5e5b50] whitespace-nowrap text-[11px]"
-        >
-          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current flex-shrink-0" aria-hidden="true">
-            <path d="M23.881 8.948c-.773-4.085-4.859-4.593-4.859-4.593H.723c-.604 0-.679.798-.679.798s-.082 7.324-.022 11.822c.164 2.424 2.586 2.672 2.586 2.672s8.267-.023 11.966-.049c2.438-.426 2.683-2.566 2.658-3.734 4.352.24 7.422-2.831 6.649-6.916zm-11.062 3.511c-1.246 1.453-4.011 3.976-4.011 3.976s-.121.119-.31.023c-.076-.057-.108-.09-.108-.09-.443-.441-3.368-3.049-4.034-3.954-.709-.965-1.041-2.7-.091-3.71.951-1.01 3.005-1.086 4.363.407 0 0 1.565-1.782 3.468-.963 1.904.82 1.832 3.011.723 4.311zm6.173.478c-.928.116-1.682.028-1.682.028V7.284h1.77s1.971.551 1.971 2.638c0 1.913-.985 2.667-2.059 3.015z" />
-          </svg>
-          <span className="hidden sm:inline">Buy me a coffee ☕</span>
-          <span className="sm:hidden">Support ☕</span>
-        </a>
         {isHost && queueState.nowPlaying && (
           <button
             onClick={handleAdvance}
