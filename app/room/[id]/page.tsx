@@ -305,14 +305,15 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
         {/* Spacer — pushes right-side items to the end */}
         <div className="flex-1 min-w-0" />
 
-        {/* NowPlaying: desktop only — video is visible on mobile so this is redundant there */}
+        {/* NowPlaying: desktop only */}
         <div className="hidden md:flex items-center gap-2 min-w-0 flex-shrink overflow-hidden">
           <NowPlaying compact nowPlaying={queueState.nowPlaying} onSkip={sessionInfo != null ? handleAdvance : undefined} />
         </div>
-        {isHost && queueState.nowPlaying && (
+        {/* Skip: mobile only */}
+        {sessionInfo != null && queueState.nowPlaying && (
           <button
             onClick={handleAdvance}
-            className="flex-shrink-0 text-[11px] text-gray-400 hover:text-white transition px-2 py-1 rounded hover:bg-gray-800 border border-gray-700 hover:border-gray-500"
+            className="md:hidden flex-shrink-0 text-[11px] text-gray-400 hover:text-white transition px-2 py-1 rounded hover:bg-gray-800 border border-gray-700 hover:border-gray-500"
           >
             Skip ›
           </button>
