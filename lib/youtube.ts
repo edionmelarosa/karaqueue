@@ -35,24 +35,42 @@ export async function scrapeYouTubeMix(videoId: string, maxResults: number): Pro
 
   const data = JSON.parse(html.slice(jsonStart, i + 1));
 
-  // The mix playlist lives in the sidebar panel
-  const panels: any[] =
-    data?.contents?.twoColumnWatchNextResults?.secondaryResults?.secondaryResults?.results ?? [];
+  // Primary: the fullscreen/end-screen "you might also like" recommendations
+  const endScreenResults: any[] =
+    data?.playerOverlays?.playerOverlayRenderer?.endScreen?.watchNextEndScreenRenderer?.results ?? [];
 
   const videos: Song[] = [];
-  for (const panel of panels) {
-    const v = panel?.compactVideoRenderer ?? panel?.compactAutoplayRenderer?.contents?.[0]?.compactVideoRenderer;
+  for (const result of endScreenResults) {
+    const v = result?.endScreenVideoRenderer;
     if (!v?.videoId || v.videoId === videoId) continue;
     videos.push({
       videoId: v.videoId,
       title: v.title?.simpleText ?? v.title?.runs?.[0]?.text ?? "",
-      channelTitle:
-        v.shortBylineText?.runs?.[0]?.text ??
-        v.longBylineText?.runs?.[0]?.text ??
-        "",
+      channelTitle: v.shortBylineText?.runs?.[0]?.text ?? "",
       thumbnailUrl: v.thumbnail?.thumbnails?.at(-1)?.url ?? "",
     });
     if (videos.length >= maxResults) break;
+  }
+
+  // Fallback: the mix playlist in the sidebar panel
+  if (videos.length === 0) {
+    const panels: any[] =
+      data?.contents?.twoColumnWatchNextResults?.secondaryResults?.secondaryResults?.results ?? [];
+
+    for (const panel of panels) {
+      const v = panel?.compactVideoRenderer ?? panel?.compactAutoplayRenderer?.contents?.[0]?.compactVideoRenderer;
+      if (!v?.videoId || v.videoId === videoId) continue;
+      videos.push({
+        videoId: v.videoId,
+        title: v.title?.simpleText ?? v.title?.runs?.[0]?.text ?? "",
+        channelTitle:
+          v.shortBylineText?.runs?.[0]?.text ??
+          v.longBylineText?.runs?.[0]?.text ??
+          "",
+        thumbnailUrl: v.thumbnail?.thumbnails?.at(-1)?.url ?? "",
+      });
+      if (videos.length >= maxResults) break;
+    }
   }
 
   if (videos.length === 0) throw new Error("Mix scraper returned no results");
