@@ -403,13 +403,15 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
           </div>
 
           <div className="border-t border-gray-800" />
-          <Recommendations
-            nowPlaying={queueState.nowPlaying?.song ?? null}
-            onAdd={handleAdd}
-            onPlay={isHost ? handlePlaySong : undefined}
-          />
+          <div className="md:flex-1 md:basis-0 min-h-0 flex flex-col overflow-hidden">
+            <Recommendations
+              nowPlaying={queueState.nowPlaying?.song ?? null}
+              onAdd={handleAdd}
+              onPlay={isHost ? handlePlaySong : undefined}
+            />
+          </div>
           <div className="border-t border-gray-800" />
-          <div className="md:flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="md:flex-1 md:basis-0 min-h-0 flex flex-col overflow-hidden">
             <QueuePanel
               queue={queueState.queue}
               deviceId={deviceId}

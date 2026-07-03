@@ -46,11 +46,11 @@ export default function Recommendations({ nowPlaying, onAdd, onPlay }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-1">
-      <p className="text-[10px] text-gray-600 uppercase tracking-widest font-semibold mb-1">
+    <div className="flex flex-col gap-1 min-h-0 h-full">
+      <p className="text-[10px] text-gray-600 uppercase tracking-widest font-semibold mb-1 flex-shrink-0">
         You Might Also Like
       </p>
-      <div className="flex flex-col gap-0.5 overflow-y-auto max-h-[420px]">
+      <div className="flex flex-col gap-0.5 overflow-y-auto min-h-0 flex-1">
         {songs.map((song) => {
           const isAdded = added.has(song.videoId);
           return (
