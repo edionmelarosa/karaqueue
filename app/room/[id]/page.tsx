@@ -11,6 +11,7 @@ import SearchBar from "@/components/SearchBar";
 import SearchResults from "@/components/SearchResults";
 import Recommendations from "@/components/Recommendations";
 import AdUnit from "@/components/AdUnit";
+import FeedbackWidget from "@/components/FeedbackWidget";
 import { QueueState, Song } from "@/types";
 
 const EMPTY_STATE: QueueState = { nowPlaying: null, queue: [] };
@@ -258,6 +259,8 @@ export default function RoomPage({ params }: { params: Promise<{ id: string }> }
 
   return (
     <div className="min-h-screen md:h-screen bg-[#0a0a0f] text-white flex flex-col overflow-x-hidden">
+      <FeedbackWidget sessionId={roomId} />
+
       {/* Header */}
       <header className="px-4 py-3 border-b border-gray-800 flex items-center gap-2 flex-shrink-0 min-w-0 overflow-hidden">
         <h1 className="text-xl md:text-2xl font-black tracking-tight text-cyan-400 drop-shadow-[0_0_8px_#00d4ff] flex-shrink-0">

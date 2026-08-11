@@ -1,8 +1,11 @@
 import LobbyClient from "./LobbyClient";
+import FeedbackWidget from "@/components/FeedbackWidget";
 
 export default function LobbyPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col items-center px-4 py-10">
+      <FeedbackWidget />
+
       {/* Logo — static, server-rendered for SEO */}
       <div className="mb-10 text-center">
         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-cyan-400 drop-shadow-[0_0_16px_#00d4ff]">

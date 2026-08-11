@@ -24,3 +24,13 @@ export type QueueState = {
   nowPlaying: QueueItem | null;
   queue: QueueItem[];
 };
+
+export type FeedbackType = "bug" | "feature" | "other";
+
+export type Feedback = {
+  id: string;
+  type: FeedbackType;
+  message: string;
+  createdAt: number;
+  sessionId?: string;
+};
